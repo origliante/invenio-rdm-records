@@ -9,7 +9,10 @@
 """Record response serializers."""
 
 from .ui import UIJSONSerializer
+from .test import TestJSONSerializer
+
 
 __all__ = (
     'UIJSONSerializer',
+    'TestJSONSerializer',
 )
