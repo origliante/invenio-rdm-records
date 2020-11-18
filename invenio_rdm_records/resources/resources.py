@@ -19,7 +19,6 @@ from .schemas_links import BibliographicDraftLinksSchemaV1, \
     BibliographicRecordLinksSchemaV1, \
     BibliographicUserRecordsSearchLinksSchemaV1
 from .serializers import UIJSONSerializer
-from .serializers import TestJSONSerializer
 
 
 class BibliographicRecordResourceConfig(RecordResourceConfig):
@@ -43,9 +42,7 @@ class BibliographicRecordResourceConfig(RecordResourceConfig):
     response_handlers = {
         **RecordResourceConfig.response_handlers,
         "application/vnd.inveniordm.v1+json": RecordResponse(
-            UIJSONSerializer()),
-        "application/test+json": RecordResponse(
-            TestJSONSerializer()),
+            UIJSONSerializer())
     }
 
 
