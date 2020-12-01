@@ -6,17 +6,21 @@
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
 
-from flask_resources.serializers import JSONSerializer
+from flask_resources.serializers import JSONSerializer, SerializerMixin
 
 from datacite import schema43
 
 
 class DataCite43Serializer(JSONSerializer):
-    def serialize_object(self, record):
-        return self.transform(record['metadata'])
+    def serialize_object(self, obj):
+        obj['metadata'] = self.transform(obj['metadata'])
+        return obj
 
     def serialize_object_list(self, obj_list):
-        raise NotImplementedError
+        o_l = []
+        for obj in obj_list:
+            o_l.append(self.serialize_object(obj))
+        return o_l
 
     def transform(self, record):
         transformed = {}
