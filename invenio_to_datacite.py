@@ -2,7 +2,7 @@ import sys
 import json
 
 from jsonbender import bend, K, S
-from jsonbender.list_ops import ForallBend
+from jsonbender.list_ops import ForallBend, FlatForall
 
 
 
@@ -14,7 +14,13 @@ MAPPING = {
         'schemeURI': S('uri').optional(),
         'lang': S('lang').optional(), # not present in https://support.datacite.org/docs/schema-optional-properties-v43
         'valueURI': S('value').optional(),
-    })
+    }),
+    'titles': [{'title': S('title')}, 
+        S('additional_titles').optional() >> ForallBend({
+        'title': S('title'),
+        'titleType': S('type'), 
+        'lang': S('lang').optional(), # not present in https://support.datacite.org/docs/schema-optional-properties-v43
+        })]
 }
 _MAPPING = {
     'subjects': S('subjects').optional()
