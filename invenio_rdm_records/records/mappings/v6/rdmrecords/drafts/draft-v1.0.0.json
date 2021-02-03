@@ -48,12 +48,6 @@
                 }
               }
             },
-            "publication_date_start" : {
-              "type" : "date"
-            },
-            "publication_date_end" : {
-              "type" : "date"
-            },
             "contact" : {
               "type" : "keyword"
             },
@@ -62,29 +56,47 @@
                 "affiliations" : {
                   "properties" : {
                     "identifiers" : {
-                      "type" : "object"
+                      "properties": {
+                        "identifier" : {
+                          "type" : "keyword"
+                        },
+                        "scheme" : {
+                          "type" : "keyword"
+                        }
+                      }
                     },
                     "name" : {
                       "type" : "text"
                     }
                   }
                 },
-                "family_name" : {
-                  "type" : "text"
-                },
-                "given_name" : {
-                  "type" : "text"
-                },
-                "identifiers" : {
-                  "type" : "object"
-                },
-                "name" : {
-                  "type" : "text"
+                "person_or_org": {
+                  "properties": {
+                    "family_name" : {
+                      "type" : "text"
+                    },
+                    "given_name" : {
+                      "type" : "text"
+                    },
+                    "identifiers" : {
+                      "properties": {
+                        "identifier" : {
+                          "type" : "keyword"
+                        },
+                        "scheme" : {
+                          "type" : "keyword"
+                        }
+                      }
+                    },
+                    "name" : {
+                      "type" : "text"
+                    },
+                    "type" : {
+                      "type" : "keyword"
+                    }
+                  }
                 },
                 "role" : {
-                  "type" : "keyword"
-                },
-                "type" : {
                   "type" : "keyword"
                 }
               }
@@ -94,26 +106,47 @@
                 "affiliations" : {
                   "properties" : {
                     "identifiers" : {
-                      "type" : "object"
+                      "properties": {
+                        "identifier" : {
+                          "type" : "keyword"
+                        },
+                        "scheme" : {
+                          "type" : "keyword"
+                        }
+                      }
                     },
                     "name" : {
                       "type" : "text"
                     }
                   }
                 },
-                "family_name" : {
-                  "type" : "text"
+                "person_or_org": {
+                  "properties": {
+                    "family_name" : {
+                      "type" : "text"
+                    },
+                    "given_name" : {
+                      "type" : "text"
+                    },
+                    "identifiers" : {
+                      "properties": {
+                        "identifier" : {
+                          "type" : "keyword"
+                        },
+                        "scheme" : {
+                          "type" : "keyword"
+                        }
+                      }
+                    },
+                    "name" : {
+                      "type" : "text"
+                    },
+                    "type" : {
+                      "type" : "keyword"
+                    }
+                  }
                 },
-                "given_name" : {
-                  "type" : "text"
-                },
-                "identifiers" : {
-                  "type" : "object"
-                },
-                "name" : {
-                  "type" : "text"
-                },
-                "type" : {
+                "role" : {
                   "type" : "keyword"
                 }
               }
@@ -125,6 +158,9 @@
                 },
                 "date" : {
                   "type" : "keyword"
+                },
+                "date_range" : {
+                  "type" : "date_range"
                 },
                 "type" : {
                   "type" : "keyword"
@@ -154,10 +190,29 @@
               }
             },
             "identifiers" : {
-              "type" : "object"
+              "properties": {
+                "identifier" : {
+                  "type" : "text"
+                },
+                "scheme" : {
+                  "type" : "keyword"
+                }
+              }
             },
-            "language" : {
-              "type" : "keyword"
+            "languages" : {
+              "type": "object",
+              "properties": {
+                "@v": {
+                  "type": "keyword"
+                },
+                "id": {
+                  "type": "keyword"
+                },
+                "title": {
+                  "type": "object",
+                  "dynamic": true
+                }
+              }
             },
             "licenses" : {
               "properties" : {
@@ -176,30 +231,40 @@
               }
             },
             "locations" : {
-              "properties" : {
-                "geometry": {
-                  "properties" : {
-                    "type" : {
-                      "type" : "keyword"
+              "properties": {
+                "features": {
+                  "properties": {
+                    "centroid": {
+                      "type": "geo_point"
                     },
-                    "coordinates" : {
-                      "type" : "float"
+                    "geometry": {
+                      "type": "geo_shape"
+                    },
+                    "place": {
+                      "type": "text"
+                    },
+                    "identifiers": {
+                      "properties": {
+                        "identifier" : {
+                          "type" : "keyword"
+                        },
+                        "scheme" : {
+                          "type" : "keyword"
+                        }
+                      }
+                    },
+                    "description": {
+                      "type": "text"
                     }
                   }
-                },
-                "place" : {
-                  "type" : "text"
-                },
-                "identifiers" : {
-                  "type" : "object"
-                },
-                "description" : {
-                  "type" : "text"
                 }
               }
             },
             "publication_date" : {
               "type" : "keyword"
+            },
+            "publication_date_range" : {
+              "type" : "date_range"
             },
             "references" : {
               "properties" : {

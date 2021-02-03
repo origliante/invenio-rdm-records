@@ -8,14 +8,13 @@
 """High-level API for wokring with RDM records, files, pids and search."""
 
 from .permissions import RDMRecordPermissionPolicy
-from .services import BibliographicRecordService, \
-    BibliographicRecordServiceConfig, BibliographicUserRecordsService, \
-    BibliographicUserRecordsServiceConfig
+from .services import RDMDraftFilesService, RDMRecordFilesService, \
+    RDMRecordService, RDMUserRecordsService
 
 __all__ = (
-    "BibliographicRecordService",
-    "BibliographicRecordServiceConfig",
-    "BibliographicUserRecordsService",
-    "BibliographicUserRecordsServiceConfig",
+    "RDMRecordService",
+    "RDMRecordFilesService",
+    "RDMUserRecordsService",
+    "RDMDraftFilesService",
     "RDMRecordPermissionPolicy",
 )

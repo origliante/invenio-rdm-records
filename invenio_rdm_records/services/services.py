@@ -8,82 +8,42 @@
 
 """Bibliographic Record Service."""
 
-from invenio_drafts_resources.services.records import RecordDraftService, \
-    RecordDraftServiceConfig
-from invenio_drafts_resources.services.records.components import \
-    RelationsComponent
-from invenio_drafts_resources.services.records.schema import RecordSchema
-from invenio_records_resources.services.records.components import \
-    AccessComponent, FilesComponent, MetadataComponent, PIDSComponent
-from invenio_records_resources.services.records.config import \
-    RecordServiceConfig
-from invenio_records_resources.services.records.search import terms_filter
+from invenio_drafts_resources.services.records import RecordDraftService
+from invenio_records_resources.services.files.service import RecordFileService
 from invenio_records_resources.services.records.service import RecordService
 
-from ..records import BibliographicDraft, BibliographicRecord
-from .components import CommunitiesComponent, StatsComponent
-from .permissions import RDMRecordPermissionPolicy
-from .schemas import RDMRecordSchema
+from . import config
 
 
-class BibliographicRecordServiceConfig(RecordDraftServiceConfig):
-    """Bibliografic record draft service config."""
-
-    # Record class
-    record_cls = BibliographicRecord
-    # Draft class
-    draft_cls = BibliographicDraft
-
-    schema = RDMRecordSchema
-    permission_policy_cls = RDMRecordPermissionPolicy
-
-    search_facets_options = dict(
-        aggs={
-            'resource_type': {
-                'terms': {'field': 'metadata.resource_type.type'},
-                'aggs': {
-                    'subtype': {
-                        'terms': {'field': 'metadata.resource_type.subtype'},
-                    }
-                }
-            },
-            'access_right': {
-                'terms': {'field': 'access.access_right'},
-            }
-        },
-        post_filters={
-            'subtype': terms_filter('metadata.resource_type.subtype'),
-            'resource_type': terms_filter('metadata.resource_type.type'),
-            'access_right': terms_filter('access.access_right'),
-        }
-    )
-
-    components = [
-        MetadataComponent,
-        PIDSComponent,
-        RelationsComponent,
-        AccessComponent,
-        FilesComponent,
-        CommunitiesComponent,
-        StatsComponent,
-    ]
-
-
-class BibliographicRecordService(RecordDraftService):
+class RDMRecordService(RecordDraftService):
     """Bibliographic record service."""
 
     config_name = "RDM_RECORDS_BIBLIOGRAPHIC_SERVICE_CONFIG"
-    default_config = BibliographicRecordServiceConfig
+    default_config = config.RDMRecordServiceConfig
 
 
-class BibliographicUserRecordsServiceConfig(BibliographicRecordServiceConfig):
-    """Bibliographic user records service configuration."""
-
-    record_cls = BibliographicDraft
-
-
-class BibliographicUserRecordsService(RecordService):
+class RDMUserRecordsService(RecordService):
     """Bibliographic user records service."""
 
     config_name = "RDM_RECORDS_BIBLIOGRAPHIC_USER_RECORDS_SERVICE_CONFIG"
-    default_config = BibliographicUserRecordsServiceConfig
+    default_config = config.RDMUserRecordsServiceConfig
+
+
+#
+# Record files
+#
+class RDMRecordFilesService(RecordFileService):
+    """Bibliographic record files service."""
+
+    config_name = "RDM_RECORDS_BIBLIOGRAPHIC_RECORD_FILES_SERVICE_CONFIG"
+    default_config = config.RDMRecordFilesServiceConfig
+
+
+#
+# Draft files
+#
+class RDMDraftFilesService(RecordFileService):
+    """Bibliographic draft files service."""
+
+    config_name = "RDM_RECORDS_BIBLIOGRAPHIC_DRAFT_FILES_SERVICE_CONFIG"
+    default_config = config.RDMDraftFilesServiceConfig

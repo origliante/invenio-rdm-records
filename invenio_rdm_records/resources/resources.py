@@ -9,110 +9,81 @@
 """Bibliographic Record Resource."""
 
 from invenio_drafts_resources.resources import DraftActionResource, \
-    DraftActionResourceConfig, DraftResource, DraftResourceConfig, \
-    RecordResource, RecordResourceConfig
-from invenio_records_resources.resources import RecordResponse
-from marshmallow.exceptions import ValidationError
+    DraftFileActionResource, DraftFileResource, DraftResource, \
+    RecordResource
+from invenio_records_resources.resources.files import FileActionResource, \
+    FileResource
 
-from .errors import handle_validation_error
-from .schemas_links import BibliographicDraftLinksSchemaV1, \
-    BibliographicRecordLinksSchemaV1, \
-    BibliographicUserRecordsSearchLinksSchemaV1
-
-from .serializers import UIJSONSerializer
 from .serializers import DataCite43Serializer
+from . import config
 
 
-
-class BibliographicRecordResourceConfig(RecordResourceConfig):
-    """Bibliographic record resource configuration."""
-
-    links_config = {
-        **RecordResourceConfig.links_config,
-        "record": BibliographicRecordLinksSchemaV1
-    }
-
-    draft_links_config = {
-        **RecordResourceConfig.draft_links_config,
-        "record": BibliographicDraftLinksSchemaV1
-    }
-
-    error_map = {
-        **RecordResourceConfig.error_map,
-        ValidationError: handle_validation_error,
-    }
-
-    response_handlers = {
-        **RecordResourceConfig.response_handlers,
-        "application/vnd.inveniordm.v1+json": RecordResponse(
-            UIJSONSerializer()),
-        "application/x-datacite-v43+json": RecordResponse(
-            DataCite43Serializer()),
-    }
-
-
-class BibliographicRecordResource(RecordResource):
+#
+# Records
+#
+class RDMRecordResource(RecordResource):
     """Bibliographic record resource."""
 
     config_name = "RDM_RECORDS_BIBLIOGRAPHIC_RECORD_CONFIG"
-    default_config = BibliographicRecordResourceConfig
+    default_config = config.RDMRecordResourceConfig
 
 
-class BibliographicDraftResourceConfig(DraftResourceConfig):
-    """Bibliographic draft resource configuration."""
-
-    links_config = {
-        **DraftResourceConfig.links_config,
-        "record": BibliographicDraftLinksSchemaV1
-    }
-
-
-class BibliographicDraftResource(DraftResource):
+#
+# Drafts
+#
+class RDMDraftResource(DraftResource):
     """Bibliographic record draft resource."""
 
     config_name = "RDM_RECORDS_BIBLIOGRAPHIC_DRAFT_CONFIG"
-    default_config = BibliographicDraftResourceConfig
+    default_config = config.RDMDraftResourceConfig
 
 
-class BibliographicDraftActionResourceConfig(DraftActionResourceConfig):
-    """Mock service configuration."""
-
-    list_route = "/records/<pid_value>/draft/actions/<action>"
-
-    action_commands = {
-        "publish": "publish"
-    }
-
-    record_links_config = {
-        **DraftActionResourceConfig.record_links_config,
-        "record": BibliographicRecordLinksSchemaV1
-    }
-
-
-class BibliographicDraftActionResource(DraftActionResource):
+class RDMDraftActionResource(DraftActionResource):
     """Bibliographic record draft actions resource."""
 
     config_name = "RDM_RECORDS_BIBLIOGRAPHIC_DRAFT_ACTION_CONFIG"
-    default_config = BibliographicDraftActionResourceConfig
+    default_config = config.RDMDraftActionResourceConfig
 
 
-class BibliographicUserRecordsResourceConfig(RecordResourceConfig):
-    """Mock service configuration."""
-
-    list_route = "/user/records"
-    links_config = {
-        "search": BibliographicUserRecordsSearchLinksSchemaV1
-    }
-
-    response_handlers = {
-        **RecordResourceConfig.response_handlers,
-        "application/vnd.inveniordm.v1+json": RecordResponse(
-            UIJSONSerializer())
-    }
-
-
-class BibliographicUserRecordsResource(BibliographicRecordResource):
+#
+# User records
+#
+class RDMUserRecordsResource(RDMRecordResource):
     """Bibliographic record user records resource."""
 
     config_name = "RDM_RECORDS_BIBLIOGRAPHIC_USER_RECORDS_CONFIG"
-    default_config = BibliographicUserRecordsResourceConfig
+    default_config = config.RDMUserRecordsResourceConfig
+
+
+#
+# Record files
+#
+class RDMRecordFilesResource(FileResource):
+    """Bibliographic record files resource."""
+
+    config_name = "RDM_RECORDS_BIBLIOGRAPHIC_RECORD_FILES_CONFIG"
+    default_config = config.RDMRecordFilesResourceConfig
+
+
+class RDMRecordFilesActionResource(FileActionResource):
+    """Bibliographic record files action resource."""
+
+    config_name = "RDM_RECORDS_BIBLIOGRAPHIC_RECORD_FILES_ACTION_CONFIG"
+    default_config = config.RDMRecordFilesActionResourceConfig
+
+
+#
+# Draft files
+#
+class RDMDraftFilesResource(DraftFileResource):
+    """Bibliographic record files resource."""
+
+    config_name = "RDM_RECORDS_BIBLIOGRAPHIC_DRAFT_FILES_CONFIG"
+    default_config = config.RDMDraftFilesResourceConfig
+
+
+class RDMDraftFilesActionResource(DraftFileActionResource):
+    """Bibliographic record files action resource."""
+
+    config_name = "RDM_RECORDS_BIBLIOGRAPHIC_DRAFT_FILES_ACTION_CONFIG"
+    default_config = config.RDMDraftFilesActionResourceConfig

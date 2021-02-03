@@ -4,11 +4,15 @@
   "conceptid": "12345-abcde",
   "pid": {
     "pk": 1,
-    "status": "R"
+    "status": "R",
+    "pid_type": "recid",
+    "obj_type": "rec"
   },
   "conceptpid": {
     "pk": 2,
-    "status": "R"
+    "status": "R",
+    "pid_type": "recid",
+    "obj_type": "rec"
   },
   "pids": {
     "doi": {
@@ -37,19 +41,25 @@
       "subtype": "article"
     },
     "creators": [{
-      "name": "Nielsen, Lars Holm",
-      "type": "personal",
-      "given_name": "Lars Holm",
-      "family_name": "Nielsen",
-      "identifiers": {
-        "orcid": "0000-0001-8135-3489"
+      "person_or_org": {
+        "name": "Nielsen, Lars Holm",
+        "type": "personal",
+        "given_name": "Lars Holm",
+        "family_name": "Nielsen",
+        "identifiers": [{
+          "scheme": "orcid",
+          "identifier": "0000-0001-8135-3489"
+        }]
       },
       "affiliations": [{
         "name": "CERN",
-        "identifiers": {
-          "ror": "01ggx4157",
-          "isni": "000000012156142X"
-        }
+        "identifiers": [{
+          "scheme": "ror",
+          "identifier": "01ggx4157"
+        }, {
+          "scheme": "isni",
+          "identifier": "000000012156142X"
+        }]
       }]
     }],
     "title": "InvenioRDM",
@@ -66,20 +76,26 @@
       "scheme": "dewey"
     }],
     "contributors": [{
-      "name": "Nielsen, Lars Holm",
-      "type": "personal",
-      "role": "other",
-      "given_name": "Lars Holm",
-      "family_name": "Nielsen",
-      "identifiers": {
-        "orcid": "0000-0001-8135-3489"
+      "person_or_org": {
+        "name": "Nielsen, Lars Holm",
+        "type": "personal",
+        "given_name": "Lars Holm",
+        "family_name": "Nielsen",
+        "identifiers": [{
+          "scheme": "orcid",
+          "identifier": "0000-0001-8135-3489"
+        }]
       },
+      "role": "other",
       "affiliations": [{
         "name": "CERN",
-        "identifiers": {
-          "ror": "01ggx4157",
-          "isni": "000000012156142X"
-        }
+        "identifiers": [{
+          "scheme": "ror",
+          "identifier": "01ggx4157"
+        }, {
+          "scheme": "isni",
+          "identifier": "000000012156142X"
+        }]
       }]
     }],
     "dates": [{
@@ -87,7 +103,11 @@
       "type": "other",
       "description": "A date"
     }],
-    "languages": ["dan", "eng"],
+    "languages": [{
+      "id": "dan"
+    }, {
+      "id": "eng"
+    }],
     "identifiers": [{
       "identifier": "1924MNRAS..84..308E",
       "scheme": "bibcode"
@@ -95,8 +115,10 @@
     "related_identifiers": [{
       "identifier": "10.1234/foo.bar",
       "scheme": "doi",
-      "relation": "cites",
-      "resource_type": {"type": "dataset"}
+      "relation_type": "cites",
+      "resource_type": {
+        "type": "dataset"
+      }
     }],
     "sizes": [
       "11 pages"
@@ -106,33 +128,41 @@
     ],
     "version": "v1.0",
     "rights": [{
-      "rights": "Creative Commons Attribution 4.0 International",
-      "scheme": "spdx",
-      "identifier": "cc-by-4.0",
-      "url": "https://creativecommons.org/licenses/by/4.0/"
-    }],
+        "title": "Creative Commons Attribution 4.0 International",
+        "description": "A description.",
+        "link": "https://creativecommons.org/licenses/by/4.0/"
+      },
+      {
+        "id": "cc-by-4.0"
+      }
+    ],
     "description": "Test",
     "additional_descriptions": [{
       "description": "Bla bla bla",
       "type": "methods",
       "lang": "eng"
     }],
-    "locations": [{
-      "geometry": {
-        "type": "Point",
-        "coordinates": [6.05, 46.23333]
-      },
-      "identifiers": {
-        "geonames": "2661235",
-        "tgn": "http://vocab.getty.edu/tgn/8703679"
-      },
-      "place": "CERN",
-      "description": "Invenio birth place."
-    }],
+    "locations": {
+      "features": [{
+        "geometry": {
+          "type": "Point",
+          "coordinates": [6.05, 46.23333]
+        },
+        "identifiers": [{
+          "scheme": "geonames",
+          "identifier": "2661235"
+        }, {
+          "scheme": "tgn",
+          "identifier": "http://vocab.getty.edu/tgn/8703679"
+        }],
+        "place": "CERN",
+        "description": "Invenio birth place."
+      }]
+    },
     "funding": [{
       "funder": {
         "name": "European Commission",
-        "identifier": "1234",
+        "identifier": "01ggx4157",
         "scheme": "ror"
       },
       "award": {
@@ -177,20 +207,23 @@
     }
   },
   "files": {
-    "disabled": false,
-    "total_size": 1114324524355,
-    "count": 1,
-    "bucket": "81983514-22e5-473a-b521-24254bd5e049",
-    "files": [{
-      "checksum": "md5:234245234213421342",
-      "size": 1114324524355,
-      "key": "big-dataset.zip",
-      "ext": "zip",
-      "description": "File containing the data.",
-      "order": "1",
-      "default_preview": true,
-      "file_id": "445aaacd-9de1-41ab-af52-25ab6cb93df7"
-    }]
+    "enabled": true,
+    "default_preview": "big-dataset.zip",
+    "order": ["big-dataset.zip"],
+    "entries": {
+      "big-dataset.zip": {
+        "checksum": "md5:234245234213421342",
+        "mimetype": "application/zip",
+        "size": 1114324524355,
+        "key": "big-dataset.zip",
+        "file_id": "445aaacd-9de1-41ab-af52-25ab6cb93df7"
+      }
+    },
+    "meta": {
+      "big-dataset.zip": {
+        "description": "File containing the data."
+      }
+    }
   },
 
   "notes": [

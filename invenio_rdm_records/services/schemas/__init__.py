@@ -9,26 +9,12 @@
 """RDM record schemas."""
 
 from invenio_drafts_resources.services.records.schema import RecordSchema
-from marshmallow import EXCLUDE, INCLUDE, Schema, fields, missing
+from marshmallow import EXCLUDE, fields, post_dump
+from marshmallow_utils.fields import NestedAttribute
 
 from .access import AccessSchema
 from .metadata import MetadataSchema
 from .pids import PIDSchema
-
-
-# NOTE: Use this one for system fields only
-class AttributeAccessorFieldMixin:
-    """Marshmallow field mixin for attribute-based serialization."""
-
-    def get_value(self, obj, attr, accessor=None, default=missing):
-        """Return the value for a given key from an object attribute."""
-        attribute = getattr(self, "attribute", None)
-        check_key = attr if attribute is None else attribute
-        return getattr(obj, check_key, default)
-
-
-class NestedAttribute(fields.Nested, AttributeAccessorFieldMixin):
-    """Nested object attribute field."""
 
 
 class RDMRecordSchema(RecordSchema):
@@ -37,6 +23,7 @@ class RDMRecordSchema(RecordSchema):
     class Meta:
         """Meta class."""
 
+        # TODO: RAISE instead!
         unknown = EXCLUDE
 
     field_load_permissions = {
@@ -90,6 +77,20 @@ class RDMRecordSchema(RecordSchema):
     #     ExtensionSchema = current_app_metadata_extensions.to_schema()
 
     #     return ExtensionSchema().load(value)
+
+    @post_dump
+    def default_nested(self, data, many, **kwargs):
+        """Serialize metadata as empty dict for partial drafts.
+
+        Cannot use marshmallow for Nested fields due to issue:
+        https://github.com/marshmallow-code/marshmallow/issues/1566
+        https://github.com/marshmallow-code/marshmallow/issues/41
+        and more.
+        """
+        if not data.get("metadata"):
+            data["metadata"] = {}
+
+        return data
 
 
 __all__ = (

@@ -9,6 +9,7 @@
 """RDM record schemas."""
 
 import arrow
+from flask_babelex import lazy_gettext as _
 from marshmallow import Schema, ValidationError, fields, validate, validates, \
     validates_schema
 from marshmallow_utils.fields import ISODateString, SanitizedUnicode
@@ -26,13 +27,18 @@ class AccessConditionSchema(Schema):
     default_link_validity = fields.Integer()
 
 
+class Agent(Schema):
+    """An agent schema."""
+
+    user = fields.Integer(required=True)
+
+
 class AccessSchema(Schema):
     """Access schema."""
 
     metadata = fields.Bool(required=True)
     files = fields.Bool(required=True)
-    owned_by = fields.List(
-        fields.Integer, validate=validate.Length(min=1), required=True)
+    owned_by = fields.List(fields.Nested(Agent))
     access_right = SanitizedUnicode(required=True)
     embargo_date = ISODateString()
     access_condition = fields.Nested(AccessConditionSchema)

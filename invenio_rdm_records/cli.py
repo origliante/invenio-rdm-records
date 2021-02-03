@@ -7,9 +7,9 @@
 # it under the terms of the MIT License; see LICENSE file for more details.
 
 """Command-line tools for demo module."""
+
 import datetime
 import random
-import uuid
 
 import click
 from edtf.parser.grammar import level0Expression
@@ -17,14 +17,17 @@ from faker import Faker
 from flask.cli import with_appcontext
 from flask_principal import Identity
 from invenio_access import any_user
-from invenio_db import db
-from invenio_indexer.api import RecordIndexer
-from invenio_pidstore import current_pidstore
-from invenio_records_files.api import Record
-from invenio_search import current_search
 
-from .services import BibliographicRecordService
+from .fixtures import FixturesEngine
+from .services import RDMDraftFilesService, RDMRecordService
 from .vocabularies import Vocabularies
+
+
+def system_identity():
+    """System identity."""
+    identity = Identity(1)
+    identity.provides.add(any_user)
+    return identity
 
 
 def fake_resource_type():
@@ -79,7 +82,7 @@ def create_fake_record():
         "access": {
             "metadata": False,
             "files": False,
-            "owned_by": [1],
+            "owned_by": [{"user": 1}],
             "access_right": "open",
             "embargo_date":
                 fake.future_date(end_date='+1y').strftime("%Y-%m-%d")
@@ -87,16 +90,21 @@ def create_fake_record():
         "metadata": {
             "resource_type": fake_resource_type(),
             "creators": [{
-                "name": fake.name(),
-                "type": "personal",
-                "identifiers": {
-                    "orcid": "0000-0002-1825-0097",
+                "person_or_org": {
+                    "family_name": fake.last_name(),
+                    "given_name": fake.first_name(),
+                    "type": "personal",
+                    "identifiers": [{
+                        "scheme": "orcid",
+                        "identifier": "0000-0002-1825-0097",
+                    }],
                 },
                 "affiliations": [{
                     "name": fake.company(),
-                    "identifiers": {
-                        "ror": "03yrm5c26"
-                    }
+                    "identifiers": [{
+                        "scheme": "ror",
+                        "identifier": "03yrm5c26",
+                    }]
                 }]
             } for i in range(4)],
             "title": fake.company() + "'s gallery",
@@ -113,37 +121,42 @@ def create_fake_record():
             "publication_date": fake_edtf_level_0(),
             "subjects": [{
                 "subject": fake.word(),
-                "identifier": "subj-1",
-                "scheme": "no-scheme"
+                "identifier": "03yrm5c26",
+                "scheme": "ror"
             }, {
                 "subject": fake.word(),
-                "identifier": "subj-1",
-                "scheme": "no-scheme"
+                "identifier": "03yrm5c26",
+                "scheme": "ror"
             }],
             "contributors": [{
-                "name": fake.name(),
-                "type": "personal",
+                "person_or_org": {
+                    "family_name": fake.last_name(),
+                    "given_name": fake.first_name(),
+                    "type": "personal",
+                },
                 "affiliations": [{
                     "name": fake.company(),
-                    "identifiers": {
-                        "ror": "03yrm5c26"
-                    }
+                    "identifiers": [{
+                        "scheme": "ror",
+                        "identifier": "03yrm5c26",
+                    }]
                 }],
                 "role": "rightsholder"
             } for i in range(3)],
-            "dates": [{
-                # No end date to avoid computations based on start
-                "date": fake.date(pattern='%Y-%m-%d'),
-                "description": "Random test date",
-                "type": "other"
-            }],
-            "languages": ["eng"],
-            "related_identifiers": [{
-                "identifier": "10.9999/rdm.9999988",
-                "scheme": "doi",
-                "relation_type": "requires",
-                "resource_type": fake_resource_type()
-            }],
+            # "dates": [{
+            #     # No end date to avoid computations based on start
+            #     "date": fake.date(pattern='%Y-%m-%d'),
+            #     "description": "Random test date",
+            #     "type": "other"
+            # }],
+            # TODO: Add when we have PIDs for languages vocabulary
+            # "languages": [{"id": "eng"}],
+            # "related_identifiers": [{
+            #     "identifier": "10.9999/rdm.9999988",
+            #     "scheme": "doi",
+            #     "relation_type": "requires",
+            #     "resource_type": fake_resource_type()
+            # }],
             "sizes": [
                 "11 pages"
             ],
@@ -151,12 +164,12 @@ def create_fake_record():
                 "application/pdf"
             ],
             "version": "v0.0.1",
-            "rights": [{
-                "rights": "Berkeley Software Distribution 3",
-                "uri": "https://opensource.org/licenses/BSD-3-Clause",
-                "identifier": "BSD-3",
-                "scheme": "BSD-3",
-            }],
+            # "rights": [{
+            #     "rights": "Berkeley Software Distribution 3",
+            #     "uri": "https://opensource.org/licenses/BSD-3-Clause",
+            #     "identifier": "03yrm5c26",
+            #     "scheme": "ror",
+            # }],
             "description": fake.text(max_nb_chars=3000),
             "additional_descriptions": [{
                 "description": fake.text(max_nb_chars=200),
@@ -166,55 +179,58 @@ def create_fake_record():
             "funding": [{
                 "funder": {
                     "name": "European Commission",
-                    "identifier": "1234",
+                    "identifier": "03yrm5c26",
                     "scheme": "ror"
                 },
                 "award": {
                     "title": "OpenAIRE",
                     "number": "246686",
-                    "identifier": ".../246686",
-                    "scheme": "openaire"
+                    "identifier": "0000-0002-1825-0097",
+                    "scheme": "orcid"
                 }
             }],
-            "locations": [{
-                'geometry': {
-                    'type': 'Point',
-                    'coordinates': [
-                        float(fake.latitude()), float(fake.longitude())
-                    ]
-                },
-                "place": fake.location_on_land()[2],
-                "description": "Random place on land...",
-                'identifiers': {
-                    'wikidata': '12345abcde',
-                    'geonames': '12345abcde'
-                }
-            }, {
-                'geometry': {
-                    'type': 'MultiPoint',
-                    'coordinates': [
-                        [float(fake.latitude()), float(fake.longitude())],
-                        [float(fake.latitude()), float(fake.longitude())]
-                    ]
-                },
-                "place": fake.location_on_land()[2],
-            }
-            ],
+            # "locations": [{
+            #     'geometry': {
+            #         'type': 'Point',
+            #         'coordinates': [
+            #             float(fake.latitude()), float(fake.longitude())
+            #         ]
+            #     },
+            #     "place": fake.location_on_land()[2],
+            #     "description": "Random place on land...",
+            #     'identifiers': [{
+            #         'scheme': 'ror',
+            #         'identifier': '03yrm5c26',
+            #     }, {
+            #         'scheme': 'orcid',
+            #         'identifier': '0000-0002-1825-0097',
+            #     }]
+            # }, {
+            #     'geometry': {
+            #         'type': 'MultiPoint',
+            #         'coordinates': [
+            #             [float(fake.latitude()), float(fake.longitude())],
+            #             [float(fake.latitude()), float(fake.longitude())]
+            #         ]
+            #     },
+            #     "place": fake.location_on_land()[2],
+            # }
+            # ],
             "references": [{
                 "reference": "Reference to something et al.",
-                "identifier": "9999.99988",
-                "scheme": "grid"
+                "identifier": "0000000114559647",
+                "scheme": "isni"
             }]
         }
     }
 
-    # identity providing `any_user` system role
-    identity = Identity(1)
-    identity.provides.add(any_user)
+    service = RDMRecordService()
+    draft_files_service = RDMDraftFilesService()
 
-    service = BibliographicRecordService()
-    draft = service.create(data=data_to_use, identity=identity)
-    record = service.publish(id_=draft.id, identity=identity)
+    draft = service.create(data=data_to_use, identity=system_identity())
+    draft_files_service.update_files(
+        id_=draft.id, identity=system_identity(), data={'enabled': False})
+    record = service.publish(id_=draft.id, identity=system_identity())
 
     return record
 
@@ -228,10 +244,14 @@ def rdm_records():
 @rdm_records.command('demo')
 @with_appcontext
 def demo():
-    """Create 10 fake records for demo purposes."""
-    click.secho('Creating demo records...', fg='blue')
+    """Create 100 fake records for demo purposes."""
+    click.secho('Creating vocabularies!', fg='green')
 
-    for _ in range(10):
+    FixturesEngine(system_identity()).run()
+
+    click.secho('Creating demo records...', fg='green')
+
+    for _ in range(100):
         create_fake_record()
 
-    click.secho('Created records!', fg='green')
+    click.secho('Created records and vocabularies!', fg='green')

@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2019-2020 CERN.
-# Copyright (C) 2019-2020 Northwestern University.
+# Copyright (C) 2019-2021 CERN.
+# Copyright (C) 2019-2021 Northwestern University.
+# Copyright (C)      2021 TU Wien.
 #
 # Invenio-RDM-Records is free software; you can redistribute it and/or modify
 # it under the terms of the MIT License; see LICENSE file for more details.
@@ -16,7 +17,7 @@ readme = open('README.rst').read()
 history = open('CHANGES.rst').read()
 
 tests_require = [
-    'pytest-invenio>=1.4.0,<2.0.0',
+    'pytest-invenio>=1.4.1,<2.0.0',
     'invenio-app>=1.3.0,<2.0.0'
 ]
 
@@ -26,7 +27,7 @@ invenio_search_version = '>=1.4.0,<2.0.0'
 
 extras_require = {
     'docs': [
-        'Sphinx>=3',
+        'Sphinx>=3,<3.4.2',
     ],
     # Elasticsearch version
     'elasticsearch6': [
@@ -62,24 +63,13 @@ setup_requires = [
 
 install_requires = [
     'arrow>=0.17.0',
-    'CairoSVG>=1.0.20',
     'Faker>=2.0.3',
     'ftfy>=4.4.3,<5.0.0',
-    'idutils>=1.1.7',
-    'invenio-assets>=1.2.2,<1.3.0',
-    'invenio-communities>=2.1.1,<3.0.0',
-    'invenio-drafts-resources>=0.5.0,<0.6.0',
-    'invenio-formatter[badges]>=1.1.0a1,<2.0.0',
-    'invenio-i18n>=1.2.0',
-    'invenio-records>=1.4.0a4,<2.0.0',
-    'invenio-records-files>=1.2.1,<2.0.0',
-    'invenio-records-ui>=1.2.0a1,<2.0.0',
-    'invenio-previewer>=1.2.1,<2.0.0',
-    # until fix in invenio-previewer is released
-    'nbconvert[execute]>=4.1.0,<6.0.0',
+    'invenio-drafts-resources>=0.8.1,<0.9.0',
+    # 'invenio-records-rest>=1.6.0',
+    'invenio-vocabularies>=0.2.1,<0.3.0',
     'pytz>=2020.4',
-    # TODO: Get from invenio-base
-    'six>=1.12.0'  # Needed to pass CI tests
+    'pyyaml>=5.4.0',
 ]
 
 packages = find_packages()
@@ -109,26 +99,30 @@ setup(
         'flask.commands': [
             'rdm-records = invenio_rdm_records.cli:rdm_records',
         ],
-        'invenio_assets.webpack': [
-            'invenio_rdm_records_theme = invenio_rdm_records.theme.webpack:theme',
-        ],
         'invenio_base.apps': [
             'invenio_rdm_records = invenio_rdm_records:InvenioRDMRecords',
         ],
         'invenio_base.api_apps': [
             'invenio_rdm_records = invenio_rdm_records:InvenioRDMRecords',
         ],
-        'invenio_base.blueprints': [
-            'invenio_rdm_records = invenio_rdm_records.theme.views:blueprint',
-        ],
-        'invenio_i18n.translations': [
-            'messages = invenio_rdm_records',
+        "invenio_base.api_blueprints": [
+            'invenio_vocabularies_subjects = invenio_rdm_records.vocabularies.views:create_subjects_blueprint_from_app',
+            'invenio_rdm_records_record = invenio_rdm_records.views:create_records_bp',
+            'invenio_rdm_records_draft = invenio_rdm_records.views:create_drafts_bp',
+            'invenio_rdm_records_draft_action = invenio_rdm_records.views:create_drafts_action_bp',
+            'invenio_rdm_records_user_records = invenio_rdm_records.views:create_user_records_bp',
+            'invenio_rdm_records_record_files = invenio_rdm_records.views:create_record_files_bp',
+            'invenio_rdm_records_record_files_action = invenio_rdm_records.views:create_record_files_action_bp',
+            'invenio_rdm_records_draft_files = invenio_rdm_records.views:create_draft_files_bp',
+            'invenio_rdm_records_draft_files_action = invenio_rdm_records.views:create_draft_files_action_bp',
         ],
         'invenio_jsonschemas.schemas': [
             'invenio_rdm_records = invenio_rdm_records.records.jsonschemas',
+            'subjects = invenio_vocabularies.contrib.subjects.jsonschemas',
         ],
         'invenio_search.mappings': [
             'rdmrecords = invenio_rdm_records.records.mappings',
+            'subjects = invenio_vocabularies.contrib.subjects.mappings',
         ],
     },
     extras_require=extras_require,

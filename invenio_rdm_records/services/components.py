@@ -12,11 +12,21 @@ from invenio_records_resources.services.records.components import \
     ServiceComponent
 
 
-# TODO: move into invenio-communities
-class CommunitiesComponent(ServiceComponent):
-    """Service component for communities integration."""
+class AccessComponent(ServiceComponent):
+    """Service component for access integration."""
 
+    def create(self, identity, data=None, record=None, **kwargs):
+        """Add basic ownership fields to the record."""
+        validated_data = data.get('access', {})
+        # TODO (Alex): replace with `record.access = ...`
+        if identity.id:
+            validated_data.setdefault('owned_by', [{'user': identity.id}])
+        record.update({'access': validated_data})
 
-# TODO: move into invenio-stats
-class StatsComponent(ServiceComponent):
-    """Service component for stats integration."""
+    def update(self, identity, data=None, record=None, **kwargs):
+        """Update handler."""
+        validated_data = data.get('access', {})
+        # TODO (Alex): replace with `record.access = ...`
+        if identity.id:
+            validated_data.setdefault('owned_by', [{'user': identity.id}])
+        record.update({'access': validated_data})

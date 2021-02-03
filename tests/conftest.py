@@ -13,7 +13,9 @@ fixtures are available.
 """
 
 import pytest
+from flask_principal import Identity, Need, UserNeed
 from invenio_app.factory import create_app as _create_app
+from invenio_files_rest.models import Location
 
 from invenio_rdm_records import config
 
@@ -87,19 +89,25 @@ def full_record():
                 "subtype": "publication-article"
             },
             "creators": [{
-                "name": "Nielsen, Lars Holm",
-                "type": "personal",
-                "given_name": "Lars Holm",
-                "family_name": "Nielsen",
-                "identifiers": {
-                    "orcid": "0000-0001-8135-3489"
+                "person_or_org": {
+                    "name": "Nielsen, Lars Holm",
+                    "type": "personal",
+                    "given_name": "Lars Holm",
+                    "family_name": "Nielsen",
+                    "identifiers": [{
+                        "scheme": "orcid",
+                        "identifier": "0000-0001-8135-3489"
+                    }],
                 },
                 "affiliations": [{
                     "name": "CERN",
-                    "identifiers": {
-                        "ror": "01ggx4157",
-                        "isni": "000000012156142X"
-                    }
+                    "identifiers": [{
+                        "scheme": "ror",
+                        "identifier": "01ggx4157",
+                    }, {
+                        "scheme": "isni",
+                        "identifier": "000000012156142X",
+                    }]
                 }]
             }],
             "title": "InvenioRDM",
@@ -116,20 +124,26 @@ def full_record():
                 "scheme": "dewey"
             }],
             "contributors": [{
-                "name": "Nielsen, Lars Holm",
-                "type": "personal",
-                "role": "other",
-                "given_name": "Lars Holm",
-                "family_name": "Nielsen",
-                "identifiers": {
-                    "orcid": "0000-0001-8135-3489"
+                "person_or_org": {
+                    "name": "Nielsen, Lars Holm",
+                    "type": "personal",
+                    "given_name": "Lars Holm",
+                    "family_name": "Nielsen",
+                    "identifiers": [{
+                        "scheme": "orcid",
+                        "identifier": "0000-0001-8135-3489"
+                    }],
                 },
+                "role": "other",
                 "affiliations": [{
                     "name": "CERN",
-                    "identifiers": {
-                        "ror": "01ggx4157",
-                        "isni": "000000012156142X"
-                    }
+                    "identifiers": [{
+                        "scheme": "ror",
+                        "identifier": "01ggx4157",
+                    }, {
+                        "scheme": "isni",
+                        "identifier": "000000012156142X",
+                    }]
                 }]
             }],
             "dates": [{
@@ -137,7 +151,7 @@ def full_record():
                 "type": "other",
                 "description": "A date"
             }],
-            "languages": ["da", "en"],
+            "languages": [{"id": "da"}, {"id": "en"}],
             "identifiers": [{
                 "identifier": "1924MNRAS..84..308E",
                 "scheme": "bibcode"
@@ -145,7 +159,7 @@ def full_record():
             "related_identifiers": [{
                 "identifier": "10.1234/foo.bar",
                 "scheme": "doi",
-                "relation": "cites",
+                "relation_type": "cites",
                 "resource_type": {"type": "dataset"}
             }],
             "sizes": [
@@ -223,20 +237,23 @@ def full_record():
             }
         },
         "files": {
-            "disabled": False,
-            "total_size": 1114324524355,
-            "count": 1,
-            "bucket": "81983514-22e5-473a-b521-24254bd5e049",
-            "files": [{
-                "checksum": "md5:234245234213421342",
-                "size": 1114324524355,
-                "key": "big-dataset.zip",
-                "ext": "zip",
-                "description": "File containing the data.",
-                "order": "1",
-                "default_preview": True,
-                "identifier": "445aaacd-9de1-41ab-af52-25ab6cb93df7"
-            }]
+            "enabled": True,
+            "default_preview": "big-dataset.zip",
+            "order": ["big-dataset.zip"],
+            "entries": {
+                "big-dataset.zip": {
+                    "checksum": "md5:234245234213421342",
+                    "mimetype": "application/zip",
+                    "size": 1114324524355,
+                    "key": "big-dataset.zip",
+                    "file_id": "445aaacd-9de1-41ab-af52-25ab6cb93df7"
+                }
+            },
+            "meta": {
+                "big-dataset.zip": {
+                    "description": "File containing the data."
+                }
+            }
         },
         "notes": [
             "Under investigation for copyright infringement."
@@ -251,7 +268,7 @@ def minimal_record():
         "access": {
             "metadata": False,
             "files": False,
-            "owned_by": [1],
+            "owned_by": [{"user": 1}],
             "access_right": "open"
         },
         "metadata": {
@@ -260,30 +277,62 @@ def minimal_record():
                 "type": "image",
                 "subtype": "image-photo"
             },
-            # Technically not required
             "creators": [{
-                "name": "Troy Brown",
-                "type": "personal"
+                "person_or_org": {
+                    "family_name": "Brown",
+                    "given_name": "Troy",
+                    "type": "personal"
+                }
             }, {
-                "name": "Phillip Lester",
-                "type": "personal",
-                "identifiers": {"orcid": "0000-0002-1825-0097"},
+                "person_or_org": {
+                    "family_name": "Lester",
+                    "given_name": "Phillip",
+                    "type": "personal",
+                    "identifiers": [{
+                        "scheme": "orcid",
+                        "identifier": "0000-0001-8135-3489"
+                    }],
+                },
                 "affiliations": [{
                     "name": "Carter-Morris",
-                    "identifiers": {"ror": "03yrm5c26"}
+                    "identifiers": [{
+                        "scheme": "ror",
+                        "identifier": "03yrm5c26"
+                    }]
                 }]
             }, {
-                "name": "Steven Williamson",
-                "type": "personal",
-                "identifiers": {"orcid": "0000-0002-1825-0097"},
+                "person_or_org": {
+                    "family_name": "Williamson",
+                    "given_name": "Steven",
+                    "type": "personal",
+                    "identifiers": [{
+                        "scheme": "orcid",
+                        "identifier": "0000-0001-8135-3489"
+                    }],
+                },
                 "affiliations": [{
                     "name": "Ritter and Sons",
-                    "identifiers": {"ror": "03yrm5c26"}
+                    "identifiers": [{
+                        "scheme": "ror",
+                        "identifier": "03yrm5c26"
+                    }]
                 }, {
                     "name": "Montgomery, Bush and Madden",
-                    "identifiers": {"ror": "03yrm5c26"}
+                    "identifiers": [{
+                        "scheme": "ror",
+                        "identifier": "03yrm5c26"
+                    }]
                 }]
             }],
             "title": "A Romans story"
         }
     }
+
+
+@pytest.fixture(scope="module")
+def identity_simple():
+    """Simple identity fixture."""
+    i = Identity(1)
+    i.provides.add(UserNeed(1))
+    i.provides.add(Need(method='system_role', value='any_user'))
+    return i

@@ -11,20 +11,14 @@
       "description": "Type of name.",
       "type": "string",
       "enum": [
-          "organizational",
-          "personal"
+        "personal",
+        "organizational"
       ]
     },
 
     "titleType": {
       "description": "Type of title.",
-      "type": "string",
-      "enum": [
-          "alternative_title",
-          "subtitle",
-          "translated_title",
-          "other"
-      ]
+      "type": "string"
     },
 
     "contributorType": {
@@ -33,20 +27,7 @@
 
     "dateType": {
       "description": "Type of the date.",
-      "type": "string",
-      "enum": [
-        "accepted",
-        "available",
-        "copyrighted",
-        "collected",
-        "created",
-        "issued",
-        "submitted",
-        "updated",
-        "valid",
-        "withdrawn",
-        "other"
-      ]
+      "type": "string"
     },
 
     "relationType": {
@@ -54,21 +35,16 @@
     },
 
     "descriptionType": {
-      "type": "string",
-      "enum": [
-        "abstract",
-        "methods",
-        "seriesinformation",
-        "tableofcontents",
-        "technicalinfo",
-        "other"
-      ]
+      "type": "string"
     },
 
     "language": {
-      "type": "string",
-      "minLength": 3,
-      "maxLength": 3
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        }
+      }
     },
 
     "longitude": {
@@ -99,6 +75,16 @@
       "additionalProperties": {"$ref": "#/definitions/identifier"}
     },
 
+    "identifiers_with_scheme": {
+      "description": "Identifiers object with identifier value and scheme in separate keys.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "identifier": {"$ref": "#/definitions/identifier"},
+        "scheme": {"$ref": "#/definitions/scheme"}
+      }
+    },
+
     "internal-pid": {
       "type": "object",
       "description": "An internal persistent identifier object.",
@@ -119,6 +105,14 @@
             "M",
             "D"
           ]
+        },
+        "pid_type": {
+          "description": "The type of the persistent identifier.",
+          "type": "string"
+        },
+        "obj_type": {
+          "description": "The type of the associated object.",
+          "type": "string"
         }
       }
     },
@@ -141,7 +135,6 @@
       }
     },
 
-
     "resource_type": {
       "type": "object",
       "additionalProperties": false,
@@ -161,6 +154,23 @@
       ]
     },
 
+    "person_or_org": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "name": {"type": "string"},
+        "type": {"$ref": "#/definitions/nameType"},
+        "given_name": {"type": "string"},
+        "family_name": {"type": "string"},
+        "identifiers": {
+          "type": "array",
+          "items": {"$ref": "#/definitions/identifiers_with_scheme"},
+          "uniqueItems": true
+        }
+      }
+    },
+
     "affiliations": {
       "type": "array",
       "uniqueItems": true,
@@ -169,9 +179,13 @@
           "additionalProperties": false,
           "properties": {
             "name": {"type": "string"},
-            "identifiers": {"$ref": "#/definitions/identifiers"}
+            "identifiers": {
+              "type": "array",
+              "items": {"$ref": "#/definitions/identifiers_with_scheme"},
+              "uniqueItems": true
+            }
           },
-          "required": ["name", "identifiers"]
+          "required": ["name"]
       }
     },
 
@@ -180,6 +194,26 @@
       "additionalProperties": false,
       "description": "A file object.",
       "properties": {
+        "version_id": {
+          "description": "Object version ID.",
+          "type": "string"
+        },
+        "bucket_id": {
+          "description": "Object verison bucket ID.",
+          "type": "string"
+        },
+        "mimetype": {
+          "description": "File MIMEType.",
+          "type": "string"
+        },
+        "uri": {
+          "description": "File URI.",
+          "type": "string"
+        },
+        "storage_class": {
+          "description": "File storage class.",
+          "type": "string"
+        },
         "checksum": {
           "description": "Checksum of the file.",
           "type": "string"
@@ -190,26 +224,6 @@
         },
         "key": {
           "description": "Key (filename) of the file.",
-          "type": "string"
-        },
-        "ext": {
-          "description": "File extension.",
-          "type": "string"
-        },
-        "description": {
-          "description": "Description for file.",
-          "type": "string"
-        },
-        "order": {
-          "description": "Value to sort according to.",
-          "type": "string"
-        },
-        "default_preview": {
-          "description": "Set to true to use as the default previewed file.",
-          "type": "boolean"
-        },
-        "bucket": {
-          "description": "TODO - Bucket id - what about third party storage systems?",
           "type": "string"
         },
         "file_id": {"$ref": "#/definitions/identifier"}
@@ -231,6 +245,225 @@
       "description": "An agent (user, software process, community, ...).",
       "oneOf": [
         {"$ref": "#/definitions/user"}
+      ]
+    },
+
+    "GeoJSON-Geometry": {
+      "$schema": "http://json-schema.org/draft-07/schema#",
+      "$id": "https://geojson.org/schema/Geometry.json",
+      "title": "GeoJSON Geometry",
+      "oneOf": [
+        {
+          "title": "GeoJSON Point",
+          "type": "object",
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Point"
+              ]
+            },
+            "coordinates": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "number"
+              }
+            },
+            "bbox": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "title": "GeoJSON LineString",
+          "type": "object",
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "LineString"
+              ]
+            },
+            "coordinates": {
+              "type": "array",
+              "minItems": 2,
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "bbox": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "title": "GeoJSON Polygon",
+          "type": "object",
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "Polygon"
+              ]
+            },
+            "coordinates": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "minItems": 4,
+                "items": {
+                  "type": "array",
+                  "minItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            "bbox": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "title": "GeoJSON MultiPoint",
+          "type": "object",
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "MultiPoint"
+              ]
+            },
+            "coordinates": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "bbox": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "title": "GeoJSON MultiLineString",
+          "type": "object",
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "MultiLineString"
+              ]
+            },
+            "coordinates": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "minItems": 2,
+                "items": {
+                  "type": "array",
+                  "minItems": 2,
+                  "items": {
+                    "type": "number"
+                  }
+                }
+              }
+            },
+            "bbox": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        },
+        {
+          "title": "GeoJSON MultiPolygon",
+          "type": "object",
+          "required": [
+            "type",
+            "coordinates"
+          ],
+          "properties": {
+            "type": {
+              "type": "string",
+              "enum": [
+                "MultiPolygon"
+              ]
+            },
+            "coordinates": {
+              "type": "array",
+              "items": {
+                "type": "array",
+                "items": {
+                  "type": "array",
+                  "minItems": 4,
+                  "items": {
+                    "type": "array",
+                    "minItems": 2,
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              }
+            },
+            "bbox": {
+              "type": "array",
+              "minItems": 4,
+              "items": {
+                "type": "number"
+              }
+            }
+          }
+        }
       ]
     }
   },
@@ -271,13 +504,10 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["name"],
+            "required": ["person_or_org"],
             "properties": {
-                "name": {"type": "string"},
-                "type": {"$ref": "#/definitions/nameType"},
-                "given_name": {"type": "string"},
-                "family_name": {"type": "string"},
-                "identifiers": {"$ref": "#/definitions/identifiers"},
+                "person_or_org": {"$ref": "#/definitions/person_or_org"},
+                "role": {"type": "string"},
                 "affiliations": {"$ref": "#/definitions/affiliations"}
             }
           }
@@ -301,8 +531,7 @@
                 },
                 "type": {"$ref": "#/definitions/titleType"},
                 "lang": {"ref": "#/definitions/language"}
-            },
-            "required": ["title"]
+            }
           }
         },
 
@@ -335,15 +564,11 @@
           "items": {
             "type": "object",
             "additionalProperties": false,
-            "required": ["name", "role"],
+            "required": ["person_or_org", "role"],
             "properties": {
-                "name": {"type": "string"},
-                "type": {"$ref": "#/definitions/nameType"},
-                "role": {"$ref": "#/definitions/contributorType"},
-                "given_name": {"type": "string"},
-                "family_name": {"type": "string"},
-                "identifiers": {"$ref": "#/definitions/identifiers"},
-                "affiliations": {"$ref": "#/definitions/affiliations"}
+              "person_or_org": {"$ref": "#/definitions/person_or_org"},
+              "role": {"$ref": "#/definitions/contributorType"},
+              "affiliations": {"$ref": "#/definitions/affiliations"}
             }
           }
         },
@@ -377,14 +602,7 @@
         "identifiers": {
           "description": "Alternate identifiers for the record.",
           "type": "array",
-          "items": {
-              "type": "object",
-              "additionalProperties": false,
-              "properties": {
-                  "identifier": {"$ref": "#/definitions/identifier"},
-                  "scheme": {"$ref": "#/definitions/scheme"}
-              }
-          },
+          "items": {"$ref": "#/definitions/identifiers_with_scheme"},
           "uniqueItems": true
         },
 
@@ -397,7 +615,7 @@
               "properties": {
                 "identifier": {"$ref": "#/definitions/identifier"},
                 "scheme": {"$ref": "#/definitions/scheme"},
-                "relation": {"$ref": "#/definitions/relationType"},
+                "relation_type": {"$ref": "#/definitions/relationType"},
                 "resource_type": {"$ref": "#/definitions/resource_type"}
               }
           }
@@ -429,13 +647,16 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "rights": {
+              "id": {"$ref": "#/definitions/identifier"},
+              "title": {
                 "description": "The license name or license itself. Free text.",
                 "type": "string"
               },
-              "identifier": {"$ref": "#/definitions/identifier"},
-              "scheme": {"$ref": "#/definitions/scheme"},
-              "url": {
+              "description": {
+                "description": "The license description Free text.",
+                "type": "string"
+              },
+              "link": {
                 "type": "string",
                 "format": "uri"
               }
@@ -465,36 +686,60 @@
         },
 
         "locations": {
-          "description": "Geographical locations.",
-          "type": "array",
-          "items": {
-            "type": "object",
-            "additionalProperties": false,
-            "properties": {
-              "geometry": {
+          "description": "Geographical locations relevant to this record.",
+          "$comment": "This part of the schema is modelled on GeoJSON, but without the scope to embed arbitrary metadata.\n\nWe nest `features` within `locations` to give scope later to say something about the locations as a whole.",
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["features"],
+          "properties": {
+            "features": {
+              "type": "array",
+              "minItems": 1,
+              "items": {
+                "allOf": [{
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
-                  "type": {
-                    "type": "string"
+                  "geometry": {
+                    "allOf": [{
+                      "$ref": "#/definitions/GeoJSON-Geometry"
+                    }, {
+                      "$comment": "Bounding boxes (`bbox`) are forbidden on our geometries, even though they're allowed on GeoJSON geometries",
+                      "properties": {
+                        "type": {},
+                        "coordinates": {}
+                      },
+                      "additionalProperties": false
+                    }]
                   },
-                  "coordinates": {
-                    "type": "array"
+                  "identifiers": {
+                    "type": "array",
+                    "items": {"$ref": "#/definitions/identifiers_with_scheme"},
+                    "uniqueItems": true
+                  },
+                  "place": {
+                    "description": "Place of the location",
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "description": "Description of the location",
+                    "type": "string",
+                    "minLength": 1
                   }
                 }
-              },
-              "identifiers": {"$ref": "#/definitions/identifiers"},
-              "place": {
-                "description": "Place of the location",
-                "type": "string"
-              },
-              "description": {
-                "description": "Description of the location",
-                "type": "string"
+                }, {
+                  "anyOf": [
+                    {"required": ["geometry"]},
+                    {"required": ["identifiers"]},
+                    {"required": ["place"]},
+                    {"required": ["description"]}
+                  ]
+                }]
               }
             }
           }
         },
-
         "funding": {
           "type": "array",
           "items": {
@@ -639,25 +884,27 @@
       "description": "Files associated with the record",
       "additionalProperties": false,
       "properties": {
-        "disabled": {
+        "enabled": {
           "type": "boolean",
-          "description": "Set to true for metadata only records."
+          "description": "Set to false for metadata only records."
         },
-        "total_size": {
-          "type": "integer",
-          "description": "Total size of all files in bytes."
-        },
-        "count": {
-          "type": "integer",
-          "description": "Number of files."
-        },
-        "files": {
-          "type": "array",
-          "items": {"$ref": "#/definitions/file"}
-        },
-        "bucket": {
+        "default_preview": {
           "type": "string",
-          "description": "TODO - we need a bucket id, but what about third-party storage? systems"
+          "description": "Key of the default previewed file."
+        },
+        "order": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "entries": {
+          "type": "object",
+          "additionalProperties": {"$ref": "#/definitions/file"}
+        },
+        "meta": {
+          "type": "object",
+          "additionalProperties": {"type": "object"}
         }
       }
     },

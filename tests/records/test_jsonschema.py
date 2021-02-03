@@ -9,12 +9,13 @@
 """JSONSchema tests."""
 
 import json
+import unittest.mock
 from os.path import dirname, join
 
 import pytest
 from jsonschema.exceptions import ValidationError
 
-from invenio_rdm_records.records.api import BibliographicRecord as Record
+from invenio_rdm_records.records.api import RDMRecord as Record
 
 
 #
@@ -51,22 +52,26 @@ def fails_meta(data):
 def person():
     """Person for creator or contributor."""
     return {
-        "name": "Nielsen, Lars Holm",
-        "type": "personal",
-        "given_name": "Lars Holm",
-        "family_name": "Nielsen",
-        "identifiers": {
-            "orcid": "0000-0001-8135-3489"
+        "person_or_org": {
+            "name": "Nielsen, Lars Holm",
+            "type": "personal",
+            "given_name": "Lars Holm",
+            "family_name": "Nielsen",
+            "identifiers": [{
+                "scheme": "orcid",
+                "identifier": "0000-0001-8135-3489"
+            }],
         },
-        "affiliations": [
-            {
-                "name": "CERN",
-                "identifiers": {
-                    "ror": "01ggx4157",
-                    "isni": "000000012156142X",
-                }
-            }
-        ]
+        "affiliations": [{
+            "name": "CERN",
+            "identifiers": [{
+                "scheme": "ror",
+                "identifier": "01ggx4157"
+            }, {
+                "scheme": "isni",
+                "identifier": "000000012156142X"
+            }]
+        }]
     }
 
 
@@ -74,19 +79,21 @@ def person():
 def org():
     """Organization for creator or contributor."""
     return {
-        "name": "CERN",
-        "type": "organizational",
-        "identifiers": {
-            "ror": "01ggx4157"
+        "person_or_org": {
+            "name": "CERN",
+            "type": "organizational",
+            "identifiers": [{
+                "scheme": "ror",
+                "identifier": "01ggx4157"
+            }],
         },
-        "affiliations": [
-            {
-                "name": "CERN",
-                "identifiers": {
-                    "ror": "..."
-                }
-            }
-        ]
+        "affiliations": [{
+            "name": "CERN",
+            "identifiers": [{
+                "scheme": "ror",
+                "identifier": "..."
+            }],
+        }]
     }
 
 
@@ -195,14 +202,21 @@ def test_creators(appctx, person, org):
     """Test creators."""
     assert fails_meta({"creators": {}})
     assert validates_meta({"creators": []})
-    assert validates_meta({"creators": [{"name": "test"}]})
+    assert validates_meta({"creators": [{"person_or_org": {
+        "name": "test", "type": "organizational"}}]})
 
     assert validates_meta({"creators": [person]})
     assert validates_meta({"creators": [org]})
     assert validates_meta({"creators": [person, org]})
 
     # Additional prop fails
-    assert fails_meta({"creators": [{"name": "test", "invalid": "test"}]})
+    assert fails_meta({"creators": [{
+        "person_or_org": {
+            "name": "test",
+            "type": "organizational"
+        },
+        "invalid": "test"
+    }]})
     person["affiliations"][0]["invalid"] = "test"
     assert fails_meta({"creators": [person]})
 
@@ -222,10 +236,6 @@ def test_additional_titles(appctx):
     ]})
     assert validates_meta({"additional_titles": [
         {"title": "Test", "type": "subtitle", "lang": "dan"},
-    ]})
-
-    assert fails_meta({"additional_titles": [
-        {"title": "Test", "type": "invalid", "lang": "toolong"}
     ]})
     assert fails_meta({"additional_titles": [
         {"title": "Test", "invalid": "invalid"}
@@ -263,8 +273,10 @@ def test_contributors(appctx, person, org):
     """Test contributors."""
     assert fails_meta({"contributors": {}})
     assert validates_meta({"contributors": []})
-    assert validates_meta({"contributors": [
-        {"name": "test", "role": "other"}]})
+    assert validates_meta({"contributors": [{
+        "person_or_org": {"name": "test", "type": "organizational"},
+        "role": "other"
+    }]})
 
     person["role"] = "other"
     org["role"] = "hosting_institution"
@@ -274,7 +286,8 @@ def test_contributors(appctx, person, org):
     assert validates_meta({"contributors": [person, org]})
 
     # Additional prop fails
-    assert fails_meta({"contributors": [{"name": "test", "invalid": "test"}]})
+    assert fails_meta({"contributors": [
+        {"person_or_org": {"name": "test"}, "invalid": "test"}]})
     person["affiliations"][0]["invalid"] = "test"
     assert fails_meta({"contributors": [person]})
 
@@ -292,7 +305,7 @@ def test_dates(appctx):
 
 def test_languages(appctx):
     """Test language property."""
-    assert validates_meta({"languages": ["dan", "eng"]})
+    assert validates_meta({"languages": [{"id": "dan"}, {"id": "eng"}]})
     assert fails_meta({"languages": ["da"]})
     assert fails_meta({"languages": "dan"})
     assert fails_meta({"languages": ["invalid"]})
@@ -321,13 +334,14 @@ def test_related_identifiers(appctx):
     assert fails_meta({"related_identifiers": 1})
     assert validates_meta({"related_identifiers": []})
     assert validates_meta({"related_identifiers": [
-        {"identifier": "10.1234/test", "scheme": "doi", "relation": "cites"}
+        {"identifier": "10.1234/test", "scheme": "doi",
+         "relation_type": "cites"}
     ]})
     assert validates_meta({"related_identifiers": [
-        {"identifier": "10.1234/test", "relation": "cites"}
+        {"identifier": "10.1234/test", "relation_type": "cites"}
     ]})
     assert validates_meta({"related_identifiers": [
-        {"identifier": "10.1234/test", "relation": "cites"}
+        {"identifier": "10.1234/test", "relation_type": "cites"}
     ]})
     # Additional property
     assert fails_meta({"related_identifiers": [
@@ -335,8 +349,10 @@ def test_related_identifiers(appctx):
     ]})
     # Unique
     assert fails_meta({"related_identifiers": [
-        {"identifier": "10.1234/test", "scheme": "doi", "relation": "cites"},
-        {"identifier": "10.1234/test", "scheme": "doi", "relation": "cites"}
+        {"identifier": "10.1234/test", "scheme": "doi",
+         "relation_type": "cites"},
+        {"identifier": "10.1234/test", "scheme": "doi",
+         "relation_type": "cites"}
     ]})
 
 
@@ -366,17 +382,19 @@ def test_rights(appctx):
     assert fails_meta({"rights": 1})
     assert validates_meta({"rights": []})
     lic_full = {
-        "rights": "Creative Commons Attribution 4.0 International",
-        "scheme": "spdx",
-        "identifier": "cc-by-4.0",
-        "url": "https://creativecommons.org/licenses/by/4.0/"
+        "title": "Creative Commons Attribution 4.0 International",
+        "description": "A Description",
+        "link": "https://creativecommons.org/licenses/by/4.0/"
     }
     lic_min = {
-        "rights": "Copyright (C) 2020. All rights reserved.",
-        "url": "https://localhost"
+        "title": "Copyright (C) 2020. All rights reserved.",
+    }
+    lic_linked = {
+        "id": "cc-by-4.0"
     }
     assert validates_meta({"rights": [lic_full]})
     assert validates_meta({"rights": [lic_min]})
+    assert validates_meta({"rights": [lic_linked]})
 
     # Additional property
     lic_full["invalid"] = "test"
@@ -407,40 +425,66 @@ def test_additional_descriptions(appctx):
     assert fails_meta({"additional_descriptions": [desc]})
 
 
-def test_locations(appctx):
+@pytest.mark.parametrize('features', [
+    [{
+        "geometry": {"type": "Point", "coordinates": [6.05, 46.23333]},
+    }], [{
+        "identifiers": [{
+            "scheme": "geonames",
+            "identifier": "2661235"
+        }, {
+            "scheme": "tgn",
+            "identifier": "http://vocab.getty.edu/tgn/8703679"
+        }],
+    }], [{
+        "place": "CERN"
+    }], [{
+        "description": "Invenio birth place."
+    }], [{
+        "geometry": {"type": "Point", "coordinates": [6.05, 46.23333]},
+        "identifiers": [{
+            "scheme": "geonames",
+            "identifier": "2661235"
+        }, {
+            "scheme": "tgn",
+            "identifier": "http://vocab.getty.edu/tgn/8703679"
+        }],
+        "place": "CERN",
+        "description": "Invenio birth place."
+    }],
+])
+def test_locations_valid(appctx, features):
     """Test locations property.
 
     Note: point bounds (i.e. +-90) are checked at Marshmallow schema level.
     """
-    assert validates_meta({"locations": [{
-        "geometry": {"type": "Point", "coordinates": [6.05, 46.23333]},
-    }]})
-    assert validates_meta({"locations": [{
-        "identifiers": {
-            "geonames": "2661235",
-            "tgn": "http://vocab.getty.edu/tgn/8703679"
-        },
-    }]})
-    assert validates_meta({"locations": [{
-        "place": "CERN"
-    }]})
-    assert validates_meta({"locations": [{
-        "description": "Invenio birth place."
-    }]})
-    assert validates_meta({"locations": [{
-        "geometry": {"type": "Point", "coordinates": [6.05, 46.23333]},
-        "identifiers": {
-            "geonames": "2661235",
-            "tgn": "http://vocab.getty.edu/tgn/8703679"
-        },
-        "place": "CERN",
-        "description": "Invenio birth place."
-    }]})
-    # Additional props
-    assert fails_meta({"locations": [{
-        "place": "CERN",
-        "invalid": "home"
-    }]})
+    assert validates_meta({"locations": {"features": features}})
+
+
+@pytest.mark.parametrize("locations", [
+    None,  # locations must be an object
+    {},  # Missing features
+    {'features': []},  # Empty features
+    {'features': [{}]},  # Empty feature
+    {
+        'features': [{
+            "properties": None,   # Additional props
+            "place": "CERN",
+        }]
+    },
+    {
+        'features': [{
+            "place": None,  # place should be a string
+        }],
+    },
+    {
+        'features': [{
+            "place": "",  # place should have at least one character
+        }],
+    }
+])
+def test_locations_invalid(appctx, locations):
+    assert fails_meta({"locations": locations})
 
 
 def test_funding(appctx):
@@ -519,3 +563,12 @@ def test_tombstones(appctx):
         "reason": "Spam record, removed by InvenioRDM staff.",
         "invalid": "test"
     }})
+
+
+def test_no_external_resolution(appctx):
+    with unittest.mock.patch('requests.get') as requests_get:
+        requests_get.side_effect = AssertionError(
+            "Attempted to resolve a URL using requests"
+        )
+
+        assert validates(_load_json('full-record.json'))
